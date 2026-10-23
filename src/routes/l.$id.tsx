@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { scrapeProduct } from "@/lib/scrape.functions";
-import { brl, remember } from "@/lib/lists";
+import { forget, brl, remember } from "@/lib/lists";
 
 export const Route = createFileRoute("/l/$id")({
   head: () => ({
@@ -24,6 +24,7 @@ type Item = {
 
 function ListPage() {
   const { id } = Route.useParams();
+  const nav = useNavigate();
   const [listName, setListName] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
@@ -31,6 +32,7 @@ function ListPage() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("items").select("*").eq("list_id", id).order("created_at");
