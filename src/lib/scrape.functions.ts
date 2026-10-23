@@ -22,7 +22,7 @@ function parsePrice(v: unknown): number | null {
   return isFinite(n) ? n : null;
 }
 
-function findLd(obj: any): { name?: string; image?: string; price?: number } | null {
+function findLd(obj: any): { name?: string; image?: string; price: number | null } | null {
   if (!obj || typeof obj !== "object") return null;
   if (Array.isArray(obj)) { for (const o of obj) { const r = findLd(o); if (r) return r; } return null; }
   if (obj["@graph"]) return findLd(obj["@graph"]);
@@ -31,7 +31,7 @@ function findLd(obj: any): { name?: string; image?: string; price?: number } | n
     const offers = Array.isArray(obj.offers) ? obj.offers[0] : obj.offers;
     const price = parsePrice(offers?.price ?? offers?.lowPrice ?? offers?.priceSpecification?.price);
     const img = Array.isArray(obj.image) ? obj.image[0] : obj.image;
-    return { name: obj.name, image: typeof img === "string" ? img : img?.url, price: price ?? undefined };
+    return { name: obj.name, image: typeof img === "string" ? img : img?.url, price };
   }
   return null;
 }
@@ -55,7 +55,7 @@ export const scrapeProduct = createServerFn({ method: "POST" })
       const html = (await res.text()).slice(0, 1_500_000);
       let ld: ReturnType<typeof findLd> = null;
       for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
-        try { ld = findLd(JSON.parse(m[1])); if (ld) break; } catch { /* ignore */ }
+        try { ld = findLd(JSON.parse(m[1] ?? "")); if (ld) break; } catch { /* ignore */ }
       }
       const name = ld?.name || meta(html, "og:title") || html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
       let image = ld?.image || meta(html, "og:image") || null;
