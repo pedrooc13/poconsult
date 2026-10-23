@@ -74,19 +74,35 @@ function Index() {
           <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Suas listas</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {saved.map((l) => (
-              <li key={l.id}>
+              <li key={l.id} className="flex items-center gap-2">
                 <Link
                   to="/l/$id"
                   params={{ id: l.id }}
-                  className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 shadow-card"
+                  className="flex min-w-0 flex-1 items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 shadow-card"
                 >
-                  <span className="font-semibold">{l.name}</span>
+                  <span className="truncate font-semibold">{l.name}</span>
                   <span className="text-primary">→</span>
                 </Link>
+                <button
+                  onClick={() => setToDelete(l)}
+                  aria-label={`Excluir lista ${l.name}`}
+                  className="h-11 w-11 shrink-0 rounded-2xl border border-border bg-card text-destructive shadow-card"
+                >
+                  🗑
+                </button>
               </li>
             ))}
           </ul>
         </section>
+      )}
+
+      {toDelete && (
+        <ConfirmSheet
+          title={`Apagar "${toDelete.name}"?`}
+          body="A lista sai do seu celular e é apagada para todas as pessoas que têm o link."
+          onClose={() => setToDelete(null)}
+          onConfirm={() => deleteSaved(toDelete)}
+        />
       )}
     </main>
   );
