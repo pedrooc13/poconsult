@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getSaved, remember, type SavedList } from "@/lib/lists";
+import { getSaved, forget, remember, type SavedList } from "@/lib/lists";
+import { ConfirmSheet } from "@/components/ConfirmSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +23,7 @@ function Index() {
   const [saved, setSaved] = useState<SavedList[]>([]);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [toDelete, setToDelete] = useState<SavedList | null>(null);
   useEffect(() => setSaved(getSaved()), []);
 
   async function create(e: React.FormEvent) {
@@ -33,6 +35,13 @@ function Index() {
     if (error || !data) return alert("Não foi possível criar a lista");
     remember({ id: data.id, name: data.name });
     nav({ to: "/l/$id", params: { id: data.id } });
+  }
+
+  async function deleteSaved(l: SavedList) {
+    setToDelete(null);
+    await supabase.from("lists").delete().eq("id", l.id);
+    forget(l.id);
+    setSaved(getSaved());
   }
 
   return (
