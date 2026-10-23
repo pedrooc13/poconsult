@@ -90,6 +90,12 @@ function ListPage() {
     setCopied(true); setTimeout(() => setCopied(false), 2000);
   }
 
+  async function deleteList() {
+    await supabase.from("lists").delete().eq("id", id);
+    forget(id);
+    nav({ to: "/" });
+  }
+
   if (missing) {
     return (
       <main className="mx-auto max-w-md px-5 pt-20 text-center">
@@ -103,9 +109,14 @@ function ListPage() {
     <main className="mx-auto min-h-screen max-w-md px-4 pb-40 pt-6">
       <header className="flex items-center justify-between">
         <Link to="/" className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">← Listas</Link>
-        <button onClick={share} className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground">
-          {copied ? "Link copiado!" : "Compartilhar"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setConfirming(true)} className="rounded-full px-3 py-2 text-sm font-semibold text-destructive" aria-label="Excluir lista">
+            Excluir
+          </button>
+          <button onClick={share} className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground">
+            {copied ? "Link copiado!" : "Compartilhar"}
+          </button>
+        </div>
       </header>
       <h1 className="mt-5 text-4xl font-extrabold tracking-tight">{listName ?? "…"}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{count} {count === 1 ? "produto" : "produtos"}</p>
@@ -168,6 +179,15 @@ function ListPage() {
       </div>
 
       {editing && <EditSheet item={editing} onClose={() => setEditing(null)} onSave={(p) => { update(editing, p); setEditing(null); }} onDelete={() => { remove(editing); setEditing(null); }} />}
+
+      {confirming && (
+        <ConfirmSheet
+          onClose={() => setConfirming(false)}
+          onConfirm={deleteList}
+          title={`Apagar "${listName ?? "lista"}"?`}
+          body="A lista e todos os produtos são apagados para todas as pessoas que têm o link."
+        />
+      )}
     </main>
   );
 }
